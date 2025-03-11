@@ -32,9 +32,25 @@ The project provides various utilities for working with LLVM IR and optimization
 
 ## Quick Start
 
+First, check your python and clang+llvm installation.
+
+```bash
+apt-get install clang llvm python3
+```
+
+To check your installation, you can run the following command.
+
+```bash
+python3 util_self_test.py
+```
+
+To run the project, you can run the following command.
+
 ```bash
 python3 util_GA.py test/a7.ll test/a7.in test/a7.out
 ```
+
+This will run the genetic algorithm to optimize the pipeline.
 
 ## About the project
 
