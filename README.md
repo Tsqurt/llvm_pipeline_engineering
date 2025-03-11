@@ -50,4 +50,4 @@ https://ics.nju.edu.cn/spar/index.html
 For any questions or feedback, please contact:
 
 Senqi Tan
-Email: 652024330022@smail.nju.edu.cn
+Email: tsqurt@qq.com
