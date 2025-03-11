@@ -33,10 +33,7 @@ The project provides various utilities for working with LLVM IR and optimization
 ## Quick Start
 
 ```bash
-touch input.in
-touch output.out
-clang -g -O3 -mllvm -disable-llvm-optzns -S -emit-llvm your_file.c -o your_file.ll
-python3 util_GA.py your_file.ll input.in output.out
+python3 util_GA.py test/a7.ll test/a7.in test/a7.out
 ```
 
 ## About the project
