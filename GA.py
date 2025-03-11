@@ -116,16 +116,16 @@ class Population:
         equ_size = max(1, int(self.size * 0.2))   # Keep 20% equivalent elite individuals  
         eli_size = max(1, int(self.size * 0.05))  # Keep 5% elite individuals
         
-        equivalence_individuals = [ind for ind in self.individuals if ind.constraint(self.raw_ll, self.opt_ll)]
+        equivalence_individuals = [ind for ind in self.individuals if self.constraint_func(ind.to_string(), self.raw_ll, self.opt_ll, self.input_str, self.output_str)]
 
         sorted_individuals = sorted(equivalence_individuals, 
-                                     key=lambda x: self.fitness_func(x.to_string(), self.raw_ll, self.input_str, self.output_str),
+                                     key=lambda x: self.fitness_func(x.to_string(), self.raw_ll, self.opt_ll, self.input_str, self.output_str),
                                      reverse=True)
 
         new_population.extend(sorted_individuals[:equ_size])
         
         sorted_individuals = sorted(self.individuals, 
-                                     key=lambda x: self.fitness_func(x.to_string(), self.raw_ll, self.input_str, self.output_str),
+                                     key=lambda x: self.fitness_func(x.to_string(), self.raw_ll, self.opt_ll, self.input_str, self.output_str),
                                      reverse=True)
 
         new_population.extend(sorted_individuals[:eli_size])
@@ -170,4 +170,4 @@ class Population:
     # return the best individual that satisfies the constraint and has the highest fitness
     def get_best_individual(self):
         equivalence_individuals = [ind for ind in self.individuals if self.constraint_func(ind.to_string(), self.raw_ll, self.opt_ll, self.input_str, self.output_str)]
-        return sorted(equivalence_individuals, key=lambda x: self.fitness_func(x.to_string(), self.raw_ll, self.input_str, self.output_str), reverse=True)[0]
+        return sorted(equivalence_individuals, key=lambda x: self.fitness_func(x.to_string(), self.raw_ll, self.opt_ll, self.input_str, self.output_str), reverse=True)[0]
