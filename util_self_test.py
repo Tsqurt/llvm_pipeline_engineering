@@ -78,7 +78,7 @@ assert mini_pipeline and mini_pipeline != atom_pipeline
 
 mini_pipeline = llvm.pipeline_minimize(a6_ll_opt, atom_pipeline)
 count = len(llvm.parse_string_as_tree(mini_pipeline))
-# some passes are infer attrs only, but they change IR's attrs.
+# Some LLVM passes are not idempotent - they can still modify IR attributes even after O2 optimization
 assert count < 10 and count > 0
 
 print("all tests passed")
