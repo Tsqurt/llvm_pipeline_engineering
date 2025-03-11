@@ -76,7 +76,7 @@ assert mini_pipeline and mini_pipeline != atom_pipeline
 mini_pipeline = llvm.pipeline_minimize(a1_ll, atom_pipeline)
 assert mini_pipeline and mini_pipeline != atom_pipeline
 
-# deprecated test
+# deprecated test for llvm
 # mini_pipeline = llvm.pipeline_minimize(a6_ll_opt, atom_pipeline)
 # count = len(llvm.parse_string_as_tree(mini_pipeline))
 # Some LLVM passes are not idempotent - they can still modify IR attributes even after O2 optimization
