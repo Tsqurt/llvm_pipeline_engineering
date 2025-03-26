@@ -1,0 +1,1 @@
+clang -O2 -c opt.c -o build/CMakeFiles/main.dir/opt.c.o
