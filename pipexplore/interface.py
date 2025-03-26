@@ -50,7 +50,7 @@ class Experiment:
 
 class IndependentExperiment(Experiment):
     """
-    Optional:Independent experiment class, ensuring that compile and run methods can be executed concurrently.
+    Optional:Independent experiment class.
     When implementing this class, ensure that compile and run methods are thread-safe,
     and do not share resources that could lead to race conditions.
     """
