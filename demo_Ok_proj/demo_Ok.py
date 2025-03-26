@@ -15,8 +15,12 @@ class OkProfile(Profile):
     Performance profile of a single experiment.
     """
     total_computation: int
+    
     def fitness(self) -> float:
         return self.total_computation
+    
+    def constraint(self) -> bool:
+        return True
 
 class OkExperiment(Experiment):
     def __init__(self):

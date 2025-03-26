@@ -30,3 +30,4 @@ venv.bak/
 .vscode/
 *.swp
 *.swo
+ga_compiler
