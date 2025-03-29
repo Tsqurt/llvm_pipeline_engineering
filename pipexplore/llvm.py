@@ -1,8 +1,10 @@
 import os
 import subprocess
-import random
 import re
 import sys
+
+from pipexplore.interface import tmp, generate_random_str
+
 
 # init this module: find clang and opt
 # Try to find clang from command line args first
@@ -33,19 +35,13 @@ llvm_dir = os.path.dirname(clang)
 # Find opt in same directory as clang
 opt = os.path.join(llvm_dir, "opt")
 
-tmp = "/tmp"
-
 # Verify opt exists and works
 try:
-    subprocess.run([opt, "--version"], capture_output=True) 
+    subprocess.run([opt, "--version"], capture_output=True)
 except (FileNotFoundError, subprocess.SubprocessError):
     print("Error: Could not find working opt installation in LLVM directory")
     print("Please verify your LLVM installation includes opt")
     sys.exit(1)
-
-def generate_random_str():
-    keys = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-    return ''.join(random.choices(keys, k=32))
 
 # strip the debug information and other metadata
 # argument: ll file path
@@ -53,7 +49,7 @@ def generate_random_str():
 def strip_f(input_ll):
     command = [opt, input_ll, "-strip-debug", "-passes=strip", "-S"]
     stdout = subprocess.run(command, capture_output=True).stdout
-    lines = stdout.decode().split('\n')     
+    lines = stdout.decode().split('\n')
 
     lines = [line for line in lines if not line.startswith(";")]
     lines = [line.split(";")[0] for line in lines]
@@ -134,13 +130,13 @@ def parse_string_as_tree(s):
     s = s.replace("\t", "")
     """ 4. remove all carriage returns"""
     s = s.replace("\r", "")
-    
+
     """ 1. case 1, the string is empty"""
     if s == "":
         return []
 
     total_length = len(s)
-    
+
     stack = [] # stack to store the parsing state
     current_dir = []
     current_str = ""
@@ -233,17 +229,17 @@ def try_compile_llvm(src_str):
             f.write(src_str)
 
         output_file = os.path.join(tmp, f"{generate_random_str()}.ll")
-        
+
         cmd = [clang, '-S', '-emit-llvm', input_file, '-o', output_file]
 
         result = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
 
         if result.returncode == 0:
             if os.path.getsize(output_file) > 0:
-                ret = True       
+                ret = True
     except Exception as e:
         print(e)
-    
+
     try:
         os.remove(input_file)
         os.remove(output_file)
@@ -261,7 +257,7 @@ def compile_llvm_noopt(src_str):
             f.write(src_str)
 
         output_file = os.path.join(tmp, f"{generate_random_str()}.ll")
-        
+
         # this is the command to compile the c string to ll string before the optimization stage, i.e. without any optimization
         cmd = [clang, '-g', '-O3', '-mllvm', '-disable-llvm-optzns', '-S', '-emit-llvm', input_file, '-o', output_file]
 
@@ -326,22 +322,22 @@ def text_ll_equivalent(ll_str_1, ll_str_2):
 
     lines1 = ll_str_1.split("\n")
     lines2 = ll_str_2.split("\n")
-    
+
     filtered_lines1 = []
     filtered_lines2 = []
-    
+
     for line in lines1:
-        if not (line.startswith("; ModuleID = ") or 
+        if not (line.startswith("; ModuleID = ") or
                 line.startswith("source_filename = ") or
                 re.match(r"!\d+ = !DIFile\(", line)):
             filtered_lines1.append(line)
-            
+
     for line in lines2:
-        if not (line.startswith("; ModuleID = ") or 
+        if not (line.startswith("; ModuleID = ") or
                 line.startswith("source_filename = ") or
                 re.match(r"!\d+ = !DIFile\(", line)):
             filtered_lines2.append(line)
-            
+
     return "\n".join(filtered_lines1) == "\n".join(filtered_lines2)
 
 # minimize the pipeline

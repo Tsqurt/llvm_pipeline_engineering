@@ -1,5 +1,15 @@
+import random
+
 from dataclasses import dataclass
 from pathlib import Path
+
+
+tmp = "/tmp"
+
+
+def generate_random_str():
+    keys = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+    return ''.join(random.choices(keys, k=32))
 
 
 class CannotCompileError(Exception):
@@ -60,7 +70,7 @@ class IndependentExperiment(Experiment):
         This method must be thread-safe and can be executed concurrently.
         '''
         raise NotImplementedError("This should be implemented by the user.")
-    
+
     def run(self) -> Profile:
         '''
         Run the executable and obtain profiling data.
