@@ -103,7 +103,7 @@ This script will take a few time, and give you a compiler named `ga_compiler`.
 Now you can compile your file using this compiler. Note: since this is *just* a compiler, most functionality in modern compiler frontend, like linking an object or preprocessing a file, or analyzing a file, is disabled. Specifying `-c` flag and `-o` flag is required. For example, 
 
 ```bash
-ga_compiler -c -o opt.o demo_Ok_proj
+ga_compiler -c -o opt.o opt.c
 ```
 
 You may want to make a copy of `demo_xGA.py` to write your own script for your own object, especially the `experiment` object. In our demo, we show a way to make every experiment independent to each other for your reference, and thus our framework will parallel to enhance profiling speed. If you are unsure how to write an independent impementation, you can use no-parallel version: in the `__main__` part of `demo_xGA.py`, enabling the following code:
