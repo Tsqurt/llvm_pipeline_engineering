@@ -1,12 +1,8 @@
 #!/usr/bin/python3
 # tests
 
-from batch_map import batch_map
-import time 
-import random
-import sys
-import os 
-import llvm
+from pipexplore.batch_map import batch_map
+import pipexplore.llvm as llvm
 
 
 list = [i for i in range(1000)]
