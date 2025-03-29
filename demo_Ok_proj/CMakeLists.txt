@@ -13,7 +13,7 @@ add_executable(main
     hidden_numbers.c
 )
 
-set(TO_BE_OPTIMIZED_FILES opt.c)
+set(TO_BE_OPTIMIZED_FILES ${CMAKE_CURRENT_SOURCE_DIR}/opt.c)
 set(TRANSFORMER_PATH)
 
 if(TO_BE_OPTIMIZED_FILES AND NOT TRANSFORMER_PATH)
@@ -22,27 +22,11 @@ if(TO_BE_OPTIMIZED_FILES AND NOT TRANSFORMER_PATH)
         to get a transformer")
 endif()
 
-function(pipexplore)
-    set(options)
-    set(oneValueArgs TARGET_NAME)
-    set(multiValueArgs CSRC_FILES)
-    cmake_parse_arguments(PARSE_ARGV 0 ARG "${options}" "${oneValueArgs}" "${multiValueArgs}")
-
-    # Translate .c files to .o files using TRANSFORMER_PATH
-    set(OUTPUT_FILES)
-    foreach(csrc_file IN LISTS ARG_CSRC_FILES)
-        get_filename_component(csrc_file_name ${csrc_file} NAME_WE)
-        set(output_file ${CMAKE_CURRENT_BINARY_DIR}/${csrc_file_name}.o)
-        add_custom_command(
-            OUTPUT ${output_file}
-            COMMAND ${TRANSFORMER_PATH} -c ${CMAKE_CURRENT_SOURCE_DIR}/${csrc_file} -o ${output_file}
-            DEPENDS ${TRANSFORMER_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/${csrc_file}
-        )
-        list(APPEND OUTPUT_FILES ${output_file})
-    endforeach()
-    add_library(${ARG_TARGET_NAME}_opt STATIC ${OUTPUT_FILES})
-    set_target_properties(${ARG_TARGET_NAME}_opt PROPERTIES LINKER_LANGUAGE C)
-    target_link_libraries(${ARG_TARGET_NAME} ${ARG_TARGET_NAME}_opt)
-endfunction()
-
-pipexplore(TARGET_NAME main CSRC_FILES opt.c)
+# Translate .c files to .a library using TRANSFORMER_PATH
+set(optimized_lib ${CMAKE_CURRENT_BINARY_DIR}/main_opt.a)
+add_custom_command(
+    OUTPUT ${optimized_lib}
+    COMMAND ${TRANSFORMER_PATH} -c ${TO_BE_OPTIMIZED_FILES} -o ${optimized_lib}
+    DEPENDS ${TRANSFORMER_PATH} ${TO_BE_OPTIMIZED_FILES}
+)
+target_link_libraries(main ${optimized_lib})
