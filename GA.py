@@ -3,7 +3,6 @@ import llvm
 import random
 import re
 from typing import List, Tuple
-import conf
 raw_available_passes = llvm.get_pipeline_str()
 raw_tree = llvm.parse_string_as_tree(raw_available_passes)
 atom_tree = llvm.atomize_tree(raw_tree)
