@@ -2,7 +2,6 @@
 import re
 import os
 import llvm
-import conf
 import subprocess
 from xGA import Individual, Population
 from pipexplore import interface

@@ -4,7 +4,6 @@ import random
 import copy
 import re
 from typing import List, Tuple
-import conf
 import pipexplore.interface as interface
 from batch_map import batch_map
 
