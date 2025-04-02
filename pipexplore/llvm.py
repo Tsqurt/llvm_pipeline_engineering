@@ -31,6 +31,14 @@ except (FileNotFoundError, subprocess.SubprocessError):
 
 # Get LLVM directory from clang path
 llvm_dir = os.path.dirname(clang)
+# If LLVM binaries are not in the same directory as clang, try to find it using llvm-config
+if not os.path.exists(os.path.join(llvm_dir, "opt")):
+    try:
+        llvm_dir = subprocess.check_output(['llvm-config', '--bindir']).decode().strip()
+    except subprocess.CalledProcessError:
+        print("Error: Could not find working opt installation in LLVM directory")
+        print("Please verify your LLVM installation includes opt")
+        sys.exit(1)
 
 # Find opt in same directory as clang
 opt = os.path.join(llvm_dir, "opt")
