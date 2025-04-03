@@ -40,15 +40,16 @@ if not os.path.exists(os.path.join(llvm_dir, "opt")):
         print("Please verify your LLVM installation includes opt")
         sys.exit(1)
 
-# Find opt in same directory as clang
+# Find opt and llc in same directory as clang
 opt = os.path.join(llvm_dir, "opt")
-
-# Verify opt exists and works
+llc = os.path.join(llvm_dir, "llc")
+# Verify opt and llc exist and work
 try:
     subprocess.run([opt, "--version"], capture_output=True)
+    subprocess.run([llc, "--version"], capture_output=True)
 except (FileNotFoundError, subprocess.SubprocessError):
-    print("Error: Could not find working opt installation in LLVM directory")
-    print("Please verify your LLVM installation includes opt")
+    print("Error: Could not find working opt or llc installation in LLVM directory")
+    print("Please verify your LLVM installation includes opt and llc")
     sys.exit(1)
 
 # strip the debug information and other metadata
@@ -375,6 +376,7 @@ def from_pipeline_make_a_compiler_to_path(pipeline_str, compiler_full_path):
     text = f"""#!/usr/bin/python3
 clang = "{clang}"
 opt = "{opt}"
+llc = "{llc}"
 tmp = "{tmp}"
 pipeline_str = "{pipeline_str}"
 import sys
@@ -400,8 +402,13 @@ if '-c' not in args:
     print("Error: -c not specified. This compiler supports compiling only.")
     exit(1)
 
-# if -O<level> specified ... remove
-args = [arg for arg in args if not arg.startswith('-O')]
+# if -O<level> specified ... record and remove
+if '-O' in args:
+    opt_level = args[args.index('-O') + 1]
+    args.remove('-O')
+    args.remove(opt_level)
+else:
+    opt_level = "0"
 
 def generate_random_str():
     keys = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
@@ -417,8 +424,8 @@ step2_result_file = os.path.join(tmp, generate_random_str() + ".bc")
 cmd = [opt, step1_result_file, '-passes=' + pipeline_str, '-o', step2_result_file]
 subprocess.run(cmd, check=True)
 
-# step 3. compile to object file
-cmd = [clang, '-c', step2_result_file, '-o', output_file]
+# step 3. compile to object file with specified optimization level
+cmd = [llc, step2_result_file, '-filetype=obj', '-o', output_file, '-O' + opt_level]
 subprocess.run(cmd, check=True)
 
 # step 4. remove temporary files, allowing failure

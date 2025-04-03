@@ -1,8 +1,9 @@
 #!/usr/bin/python3
 clang = "clang"
 opt = "opt"
+llc = "llc"
 tmp = "/tmp"
-pipeline_str = "sroa,simplifycfg,licm,adce"
+pipeline_str = "sroa,simplifycfg,adce"
 import sys
 import os
 import subprocess
@@ -26,8 +27,13 @@ if '-c' not in args:
     print("Error: -c not specified. This compiler supports compiling only.")
     exit(1)
 
-# if -O<level> specified ... remove
-args = [arg for arg in args if not arg.startswith('-O')]
+# if -O<level> specified ... record and remove
+if '-O' in args:
+    opt_level = args[args.index('-O') + 1]
+    args.remove('-O')
+    args.remove(opt_level)
+else:
+    opt_level = "0"
 
 def generate_random_str():
     keys = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
@@ -43,8 +49,8 @@ step2_result_file = os.path.join(tmp, generate_random_str() + ".bc")
 cmd = [opt, step1_result_file, '-passes=' + pipeline_str, '-o', step2_result_file]
 subprocess.run(cmd, check=True)
 
-# step 3. compile to object file
-cmd = [clang, '-c', step2_result_file, '-o', output_file]
+# step 3. compile to object file with specified optimization level
+cmd = [llc, step2_result_file, '-filetype=obj', '-o', output_file, '-O' + opt_level]
 subprocess.run(cmd, check=True)
 
 # step 4. remove temporary files, allowing failure
