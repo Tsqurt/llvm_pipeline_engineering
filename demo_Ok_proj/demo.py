@@ -7,6 +7,7 @@ import tempfile
 import subprocess
 from dataclasses import dataclass
 from pathlib import Path
+import csv
 
 import pipexplore.interface as interface
 from pipexplore.runner import Runner
@@ -17,10 +18,12 @@ class OkProfile(interface.Profile):
     """
     Performance profile of a single experiment.
     """
-    total_computation: int
+    cycles: int
+    instructions: int
+    task_clock: float
 
     def fitness(self) -> float:
-        return -self.total_computation
+        return -self.cycles
 
     def constraint(self) -> bool:
         return True
@@ -34,10 +37,12 @@ class ParallelOkExperiment(interface.IndependentExperiment):
         self.project_target_executable = None
 
     def __del__(self):
-        if self.project_target_executable:
-            os.remove(self.project_target_executable.name)
+        if self.project_target_executable is not None:
+            to_be_deleted = Path(self.project_target_executable)
+            if to_be_deleted.exists() and to_be_deleted.parent == Path(tempfile.gettempdir()):
+                os.remove(to_be_deleted)
 
-    def compile(self, cxx_path: Path):
+    def compile(self, cxx_path: str):
         # build in temporary directory
         with tempfile.TemporaryDirectory() as build_dir:
             subprocess.run(
@@ -47,23 +52,39 @@ class ParallelOkExperiment(interface.IndependentExperiment):
                 check=True,
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL)
+            # Generate a unique path for the executable
+            unique_id = next(tempfile._get_candidate_names())
+            self.project_target_executable = f"{tempfile.gettempdir()}/{unique_id}"
+            shutil.move(Path(build_dir) / "main", self.project_target_executable)
 
-            self.project_target_executable = tempfile.NamedTemporaryFile(delete=False)
-            shutil.move(Path(build_dir) / "main", self.project_target_executable.name)
-
-    def run(self) -> OkProfile:
+    def run(self, round=10) -> OkProfile:
         assert self.project_target_executable is not None and Path(
-            self.project_target_executable.name).exists(), "Executable file not found"
+            self.project_target_executable).exists(), "Executable file not found"
         with tempfile.NamedTemporaryFile() as log_file:
-            subprocess.run(
-                ["valgrind", "--tool=callgrind", f"--log-file={log_file.name}", self.project_target_executable.name],
-                cwd=tempfile.gettempdir(),
-                check=True,
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL)
-            number = re.findall(r'Collected : (\d+)', Path(log_file.name).read_text())
-        total_computation = int(number[0])
-        return OkProfile(total_computation=total_computation)
+            subprocess.run([
+                "perf", "stat", "-r",
+                str(round), "-x,", "-e", "cycles,instructions,task-clock", "-o", log_file.name,
+                self.project_target_executable
+            ],
+                           check=True,
+                           stdout=subprocess.DEVNULL,
+                           stderr=subprocess.DEVNULL)
+
+            # Extract col 1 and col 3 from the CSV output as values and keys, create the OkProfile object
+            reader = csv.reader(open(log_file.name))
+            metrics = dict()
+
+            # Skip the first 2 rows (header and empty line)
+            next(reader)  # Skip first row
+            next(reader)  # Skip second row
+
+            for row in reader:
+                key, value = row[2], row[0]
+                if key in ('cycles:u', 'instructions:u'):
+                    metrics[key[:-2]] = int(value)
+                elif key == 'task-clock:u':
+                    metrics['task_clock'] = float(value)
+        return OkProfile(**metrics)
 
 
 parser = argparse.ArgumentParser()

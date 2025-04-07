@@ -52,7 +52,7 @@ class Experiment:
         '''
         raise NotImplementedError("This should be implemented by the user.")
 
-    def run(self) -> Profile:
+    def run(self, **kwargs) -> Profile:
         '''
         Run the executable and obtain profiling data.
         '''
