@@ -7,7 +7,7 @@ import pipexplore.llvm as llvm
 import pipexplore.interface as interface
 from pipexplore.batch_map import batch_map
 
-raw_available_passes = llvm.get_pipeline_str()
+raw_available_passes = llvm.get_pipeline_str("O3")
 raw_tree = llvm.parse_string_as_tree(raw_available_passes)
 atom_tree = llvm.atomize_tree(raw_tree)
 available_passes = atom_tree

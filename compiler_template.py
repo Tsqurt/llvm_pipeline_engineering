@@ -50,7 +50,7 @@ cmd = [opt, step1_result_file, '-passes=' + pipeline_str, '-o', step2_result_fil
 subprocess.run(cmd, check=True)
 
 # step 3. compile to object file with specified optimization level
-cmd = [llc, step2_result_file, '-filetype=obj', '-o', output_file, '-O' + opt_level]
+cmd = [clang, step2_result_file, '-c', '-o', output_file, '-O' + opt_level]
 subprocess.run(cmd, check=True)
 
 # step 4. remove temporary files, allowing failure
