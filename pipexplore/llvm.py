@@ -194,7 +194,7 @@ def atomize_tree(tree):
 # get the pipeline string
 # argument: opt level
 # return: pipeline string
-def get_pipeline_str(opt_level="O2"):
+def get_pipeline_str(opt_level="O3"):
     cmd = [opt, "-" + opt_level, "--print-pipeline-passes"]
     stdin = ""
     try:
@@ -408,20 +408,20 @@ if '-O' in args:
     args.remove('-O')
     args.remove(opt_level)
 else:
-    opt_level = "0"
+    opt_level = "3"
 
 def generate_random_str():
     keys = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
     return ''.join(random.choices(keys, k=32))
 
 # step 1. precompile with old and new flags
-step1_result_file = os.path.join(tmp, generate_random_str() + ".bc")
-cmd = [clang, '-O3', '-mllvm', '-disable-llvm-optzns', '-emit-llvm', '-o', step1_result_file] + args
+step1_result_file = os.path.join(tmp, generate_random_str() + ".ll")
+cmd = [clang, '-O3', '-mllvm', '-disable-llvm-optzns', '-emit-llvm','-S', '-o', step1_result_file] + args
 subprocess.run(cmd, check=True)
 
 # step 2. optimize with pipeline
-step2_result_file = os.path.join(tmp, generate_random_str() + ".bc")
-cmd = [opt, step1_result_file, '-passes=' + pipeline_str, '-o', step2_result_file]
+step2_result_file = os.path.join(tmp, generate_random_str() + ".ll")
+cmd = [opt, step1_result_file, '-passes=' + pipeline_str, '-S', '-o', step2_result_file]
 subprocess.run(cmd, check=True)
 
 # step 3. compile to object file with specified optimization level
