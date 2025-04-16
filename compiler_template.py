@@ -16,18 +16,12 @@ import subprocess
 import random
 
 def parse_string_as_tree(s):
-    """parse a string as a tree"""
-    """return a tree"""
-    """ 1. remove all spaces"""
+
     s = s.replace(" ", "")
-    """ 2. remove all newlines"""
     s = s.replace("\n", "")
-    """ 3. remove all tabs"""
     s = s.replace("\t", "")
-    """ 4. remove all carriage returns"""
     s = s.replace("\r", "")
 
-    """ 1. case 1, the string is empty"""
     if s == "":
         return []
 
@@ -38,7 +32,6 @@ def parse_string_as_tree(s):
     current_str = ""
 
     for i in range(total_length):
-        """what we care about are ", ( ) "  """
         if s[i] == "(":
             stack.append((current_dir, current_str))
             current_dir = []
