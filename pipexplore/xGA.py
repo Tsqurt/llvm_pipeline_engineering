@@ -106,7 +106,8 @@ class Population:
         self.size = size
         self.generation = 0
         self.experiment = experiment
-
+        self.history_individuals: List[Individual] = []
+    
     def profile_individual(self):
         # 0. profile
         # Check if experiment is an instance of IndependentExperiment
@@ -124,9 +125,9 @@ class Population:
 
     def initialize(self) -> None:
         self.individuals = []
-        for _ in range(self.size):
-            self.individuals.append(Individual(available_passes))
+        self.individuals.append(Individual(available_passes))
         self.profile_individual()
+        self.history_individuals.extend(self.individuals)
 
     def evolve(self, mutation_rate: float = 0.2) -> None:
         new_population = []
@@ -183,6 +184,16 @@ class Population:
         self.individuals = new_population
         self.generation += 1
         self.profile_individual()
+        # merge the old individuals and the new individuals, and sort the max_population_size individuals
+        self.history_individuals.extend(self.individuals)
+        # unique by to_string
+        self.history_individuals = list(set(self.history_individuals))
+        # sort by fitness
+        self.history_individuals = sorted(self.history_individuals, key=lambda x: x.profile.fitness(), reverse=True)
+        # keep the top self.size individuals
+        self.history_individuals = self.history_individuals[:self.size]
+        # update the individuals
+        self.individuals = self.history_individuals
 
     # return the number of individuals that satisfy the constraint
     def get_best_individual_cnt(self):

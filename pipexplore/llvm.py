@@ -2,8 +2,12 @@ import os
 import subprocess
 import re
 import sys
+import random
 
-from pipexplore.interface import tmp, generate_random_str
+tmp = "/tmp"
+def generate_random_str():
+    keys = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+    return ''.join(random.choices(keys, k=32))
 
 
 # init this module: find clang and opt
