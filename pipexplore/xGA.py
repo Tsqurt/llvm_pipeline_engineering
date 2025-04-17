@@ -38,6 +38,10 @@ class Individual:
         pos = random.randint(0, len(self.passes))
         self.passes.insert(pos, random.choice(available_passes))
 
+    def mutate_insert_all(self) -> None:
+        pos = random.randint(0, len(self.passes))
+        self.passes = self.passes[:pos] + available_passes + self.passes[pos:]
+    
     def mutate_swap(self) -> None:
         if len(self.passes) >= 2:
             pos1, pos2 = random.sample(range(len(self.passes)), 2)
@@ -77,6 +81,27 @@ class Individual:
         )
 
         return Individual(child1_passes), Individual(child2_passes)
+
+    def mutate_remove_unused(self, experiment: interface.Experiment):
+        after_remove_file = os.path.join(llvm.tmp, llvm.generate_random_str() + ".ll")
+        # 1. create a compiler
+        compiler_full_path = llvm.from_pipeline_make_a_compiler(self.to_string(), after_remove_file)
+        # 2. copy experiment and compile
+        experiment_copy = copy.deepcopy(experiment)
+        try:
+            experiment_copy.compile(compiler_full_path)
+        except interface.CannotCompileError:
+            return False
+
+        # 3. remove the compiler
+        os.remove(compiler_full_path)
+        # . get our pipeline after removed
+        with open(after_remove_file, "r") as f:
+            after_remove_pipeline = f.read()
+        if after_remove_pipeline == self.to_string() or after_remove_pipeline == "":
+            return
+        self.passes = after_remove_pipeline.split(",")
+        return
 
     def run_profile(self, experiment: interface.Experiment):
         # 1. create a compiler
@@ -131,7 +156,7 @@ class Population:
 
     def evolve(self, mutation_rate: float = 0.2) -> None:
         new_population = []
-
+  
         # Retention strategy:
         # 1. Individuals with fitness less than O2 will be removed
         # 2. Keep 20% of elite individuals from equivalent code
@@ -172,7 +197,9 @@ class Population:
                         lambda: child.mutate_insert(),
                         lambda: child.mutate_swap(),
                         lambda: child.mutate_duplicate(),
-                        lambda: child.mutate_reverse()
+                        lambda: child.mutate_reverse(),
+                        lambda: child.mutate_insert_all(),
+                        lambda: child.mutate_remove_unused(self.experiment)
                     ])
                     mutation()
 
@@ -188,12 +215,12 @@ class Population:
         self.history_individuals.extend(self.individuals)
         # unique by to_string
         self.history_individuals = list(set(self.history_individuals))
-        # sort by fitness
-        self.history_individuals = sorted(self.history_individuals, key=lambda x: x.profile.fitness(), reverse=True)
+        # sort by fitness, if fitness is the same, sort by length. order: fitness decreasing, length increasing
+        self.history_individuals = sorted(self.history_individuals, key=lambda x: (x.profile.fitness(), - len(x.passes)), reverse=True)
         # keep the top self.size individuals
-        self.history_individuals = self.history_individuals[:self.size]
+        # self.history_individuals = self.history_individuals[:self.size]
         # update the individuals
-        self.individuals = self.history_individuals
+        self.individuals = self.history_individuals[:self.size]
 
     # return the number of individuals that satisfy the constraint
     def get_best_individual_cnt(self):
@@ -206,4 +233,4 @@ class Population:
     # return the best individual that satisfies the constraint and has the highest fitness
     def get_best_individual(self):
         equivalence_individuals = [ind for ind in self.individuals if ind.profile.constraint()]
-        return sorted(equivalence_individuals, key=lambda x: x.profile.fitness(), reverse=True)[0]
+        return sorted(equivalence_individuals, key=lambda x: (x.profile.fitness(), - len(x.passes)), reverse=True)[0]

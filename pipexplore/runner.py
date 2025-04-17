@@ -61,4 +61,4 @@ class Runner:
             ga_pipeline = best_ind_before.to_string()
 
         print(f"GA optimized pipeline is saved in {self.output_binary_path.as_posix()}")
-        llvm.from_pipeline_make_a_compiler_to_path(ga_pipeline,  self.output_binary_path)
+        llvm.from_pipeline_make_a_compiler_to_path(ga_pipeline,  self.output_binary_path, "")

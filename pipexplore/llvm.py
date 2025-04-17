@@ -376,19 +376,19 @@ def pipeline_minimize(input_ll_str, passes_str):
     return compose_atom_tree(minimized_pass_tree)
 
 # a generator that yields a compiler from a pipeline string
-def from_pipeline_make_a_compiler_to_path(pipeline_str, compiler_full_path, minimized_pipeline_file=""):
-    text = f"""#!/usr/bin/python3
+def from_pipeline_make_a_compiler_to_path(pipeline_str, compiler_full_path, minimized_pipeline_file):
+    text = f'''#!/usr/bin/python3
 clang = "{clang}"
 opt = "{opt}"
 llc = "{llc}"
 tmp = "{tmp}"
 pipeline_str = "{pipeline_str}"
-minimized_pipeline_file = "{minimized_pipeline_file}"
+minimized_pipeline_file = "{minimized_pipeline_file}"''' + r"""
 import sys
 import os
 import subprocess
 import random
-
+import re
 def parse_string_as_tree(s):
 
     s = s.replace(" ", "")
@@ -577,7 +577,7 @@ except Exception as e:
 
     return True
 
-def from_pipeline_make_a_compiler(pipeline_str):
+def from_pipeline_make_a_compiler(pipeline_str, minimized_pipeline_file=""):
     compiler_full_path = os.path.join(tmp, f"{generate_random_str()}")
-    from_pipeline_make_a_compiler_to_path(pipeline_str, compiler_full_path)
+    from_pipeline_make_a_compiler_to_path(pipeline_str, compiler_full_path, minimized_pipeline_file)
     return compiler_full_path
